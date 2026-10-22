@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="web-title">Hệ Thống Trắc Nghiệm Online</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap');
+    body { font-family: 'Lexend', sans-serif; background-color: #f8fafc; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+  <div id="app" class="max-w-4xl mx-auto p-4">
+
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP -->
+    <div id="screen-login" class="max-w-md mx-auto mt-12 bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl mb-4 text-2xl font-bold">
+          <i class="fa-solid fa-flask-vial"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-800" id="login-teacher-name">Hệ Thống Trắc Nghiệm</h1>
+        <p class="text-slate-500 text-sm mt-1" id="login-exam-title">Vui lòng đăng nhập để làm bài</p>
+      </div>
+
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Mã Học Sinh</label>
+          <input type="text" id="login-mahs" required placeholder="Nhập Mã HS (ví dụ: HS001)" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Mật Khẩu</label>
+          <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+        </div>
+        <button type="submit" id="btn-login" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-200 transition flex items-center justify-center space-x-2">
+          <span>Bắt Đầu Làm Bài</span>
+          <i class="fa-solid fa-arrow-right text-sm"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- 2. MÀN HÌNH LÀM BÀI THI -->
+    <div id="screen-exam" class="hidden space-y-6">
+      <!-- HEADER -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap items-center justify-between gap-4 sticky top-4 z-10 backdrop-blur-md bg-white/90">
+        <div>
+          <h2 class="font-bold text-lg text-slate-800" id="exam-display-title">--</h2>
+          <p class="text-xs text-slate-500">Học sinh: <span id="user-info" class="font-semibold text-slate-700">--</span> (<span id="user-mahs">--</span>)</p>
+        </div>
+        <div class="flex items-center space-x-3 bg-blue-50 px-4 py-2 rounded-xl text-blue-700 font-semibold border border-blue-100">
+          <i class="fa-regular fa-clock"></i>
+          <span id="timer">00:00</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- DANH SÁCH CÂU HỎI -->
+        <div class="md:col-span-2 space-y-6" id="questions-container">
+          <!-- Load động -->
+        </div>
+
+        <!-- BẢNG ĐIỀU HƯỚNG -->
+        <div class="md:col-span-1">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 sticky top-28 space-y-4">
+            <h3 class="font-bold text-slate-700 text-sm uppercase tracking-wider">Danh sách câu hỏi</h3>
+            <div id="nav-grid" class="grid grid-cols-5 gap-2">
+              <!-- Grid ô số -->
+            </div>
+            <hr class="border-slate-100">
+            <button onclick="confirmSubmit()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-100 transition flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-check-double"></i>
+              <span>Nộp Bài Thi</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. MÀN HÌNH KẾT QUẢ -->
+    <div id="screen-result" class="hidden max-w-lg mx-auto mt-16 bg-white p-8 rounded-3xl shadow-xl border border-slate-100 text-center space-y-6">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full text-3xl font-bold">
+        <i class="fa-solid fa-award"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">Hoàn Thành Bài Thi!</h2>
+        <p class="text-slate-500 text-sm mt-1">Kết quả đã được hệ thống lưu nhận tự động</p>
+      </div>
+      <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-2">
+        <div class="text-4xl font-extrabold text-blue-600" id="res-score">0.0</div>
+        <div class="text-slate-600 text-sm font-medium">
+          Đúng <span id="res-correct" class="font-bold text-emerald-600">0</span> / <span id="res-total">0</span> câu
+        </div>
+      </div>
+      <button onclick="location.reload()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl transition">
+        Thoát Trang Web
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // ⚠️ DÁN LINK WEB APP URL CỦA THẦY VÀO DƯỚI ĐÂY (Thay cho đoạn trong ngoặc đơn):
+    const SCRIPT_URL = 'DÁN_LINK_WEB_APP_URL_CỦA_THẦY_VÀO_ĐÂY';
+
+    let currentStudent = null;
+    let questionsData = [];
+    let examConfig = {};
+    let userAnswers = {};
+    let timerInterval = null;
+    let timeLeft = 0;
+
+    // TẢI CẤU HÌNH BÀI THI KHI VÀO TRANG
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getExamConfig`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          examConfig = data.config;
+          questionsData = data.questions;
+
+          document.getElementById('web-title').innerText = `${examConfig.tieuDe} - ${examConfig.tenGiaoVien}`;
+          document.getElementById('login-teacher-name').innerText = examConfig.tenGiaoVien;
+          document.getElementById('login-exam-title').innerText = examConfig.tieuDe;
+          document.getElementById('exam-display-title').innerText = examConfig.tieuDe;
+          timeLeft = (examConfig.thoiGianPhut || 45) * 60;
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải cấu hình bài thi:', err);
+      }
+    });
+
+    // ĐĂNG NHẬP
+    async function handleLogin(e) {
+      e.preventDefault();
+      const mahs = document.getElementById('login-mahs').value.trim();
+      const pass = document.getElementById('login-pass').value.trim();
+      const btn = document.getElementById('btn-login');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Đang xác thực...</span>`;
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'login', maHS: mahs, matKhau: pass })
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          currentStudent = data.student;
+          renderExam();
+        } else {
+          alert(data.message || 'Đăng nhập thất bại');
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ! Vui lòng kiểm tra lại URL API.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Bắt Đầu Làm Bài</span> <i class="fa-solid fa-arrow-right text-sm"></i>`;
+      }
+    }
+
+    // HIỂN THỊ GIAO DIỆN BÀI THI
+    function renderExam() {
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-exam').classList.remove('hidden');
+
+      document.getElementById('user-info').innerText = currentStudent.hoTen;
+      document.getElementById('user-mahs').innerText = currentStudent.maHS;
+
+      const container = document.getElementById('questions-container');
+      const navGrid = document.getElementById('nav-grid');
+      container.innerHTML = '';
+      navGrid.innerHTML = '';
+
+      questionsData.forEach((q, idx) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4';
+        qCard.id = `question-card-${q.id}`;
+        qCard.innerHTML = `
+          <div class="font-bold text-slate-800 text-base leading-relaxed">
+            <span class="inline-block bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-sm mr-2">Câu ${idx + 1}</span>
+            ${q.noiDung}
+          </div>
+          <div class="space-y-2 pt-2">
+            ${['A', 'B', 'C', 'D'].map(opt => `
+              <label class="flex items-center p-3 rounded-xl border border-slate-100 hover:bg-slate-50 cursor-pointer transition select-none">
+                <input type="radio" name="q_${q.id}" value="${opt}" onchange="selectAnswer('${q.id}', '${opt}',${idx + 1})" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                <span class="ml-3 font-semibold text-slate-700 mr-2">${opt}.</span>
+                <span class="text-slate-600">${q.options[opt] || ''}</span>
+              </label>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(qCard);
+
+        const navBtn = document.createElement('button');
+        navBtn.id = `nav-btn-${idx + 1}`;
+        navBtn.className = 'py-2 font-medium text-xs rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition';
+        navBtn.innerText = idx + 1;
+        navBtn.onclick = () => document.getElementById(`question-card-${q.id}`).scrollIntoView({ behavior: 'smooth' });
+        navGrid.appendChild(navBtn);
+      });
+
+      startTimer();
+    }
+
+    function selectAnswer(qId, option, qIndex) {
+      userAnswers[qId] = option;
+      const navBtn = document.getElementById(`nav-btn-${qIndex}`);
+      navBtn.className = 'py-2 font-bold text-xs rounded-lg bg-blue-600 text-white transition';
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        document.getElementById('timer').innerText = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert('Hết giờ làm bài! Hệ thống sẽ tự động nộp bài.');
+          submitExam();
+        }
+      }, 1000);
+    }
+
+    function confirmSubmit() {
+      const answered = Object.keys(userAnswers).length;
+      if (confirm(`Thầy/Cô xác nhận muốn nộp bài?\nĐã hoàn thành ${answered}/${questionsData.length} câu.`)) {
+        submitExam();
+      }
+    }
+
+    async function submitExam() {
+      clearInterval(timerInterval);
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'submitExam',
+            maHS: currentStudent.maHS,
+            hoTen: currentStudent.hoTen,
+            answers: userAnswers
+          })
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          document.getElementById('screen-exam').classList.add('hidden');
+          document.getElementById('screen-result').classList.remove('hidden');
+          document.getElementById('res-score').innerText = data.score;
+          document.getElementById('res-correct').innerText = data.correctCount;
+          document.getElementById('res-total').innerText = data.totalQuestions;
+        } else {
+          alert('Nộp bài lỗi: ' + data.message);
+        }
+      } catch (err) {
+        alert('Lỗi kết nối khi nộp bài!');
+      }
+    }
+  </script>
+</body>
+</html>
